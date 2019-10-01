@@ -76,7 +76,14 @@ class MixedPrecision(Callback):
         if self.dynamic: self.count = 0
 
     def begin_batch(self):
-        if self.xb.dtype not in [torch.int16, torch.int32, torch.int64]: self.learn.xb = self.xb.half()
+        if isinstance(self.xb, tuple):
+            new_xb = []
+            for x in self.xb:
+                new_xb.append(x if x.dtype in [torch.int16, torch.int32, torch.int64] else x.half())
+                self.learn.xb = Tuple(new_xb)
+                #if self.xb[i].dtype not in [torch.int16, torch.int32, torch.int64]: self.learn.xb[i] = self.xb[i].half()
+        else:
+            if self.xb.dtype not in [torch.int16, torch.int32, torch.int64]: self.learn.xb = self.xb.half()
 
     def after_pred(self):  self.learn.pred = self.pred.float()
     def after_loss(self):
